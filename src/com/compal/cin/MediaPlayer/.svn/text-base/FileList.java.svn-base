@@ -1,23 +1,4 @@
-/**
- * File list view Edit  	09-2-23 by Wood Pan
- * Edit text input function 09-2-23 by Wood Pan
- * Folder "/" add 			09-2-23 by Wood Pan
- * 09-2-04 by Tuvok:
- * Fix TextEdit cursor problem
- * Fix "../"
- * Remove unused variables
- * Fix some structure problems.
- * 09-3-5 by Tuvok:
- * Fix Background problem
- * 09-3-11 by wood
- * Add file filter function
- * 09-4-2 by Tuvok:
- * Mediascan updates
- * 09-5-20 by Tony:
- * Add Console Video Mode
- */
 package com.compal.cin.MediaPlayer;
-
 
 import android.app.Activity;
 import android.app.AlertDialog;

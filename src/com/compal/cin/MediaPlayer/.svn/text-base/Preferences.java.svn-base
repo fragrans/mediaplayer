@@ -9,7 +9,6 @@ import android.preference.PreferenceActivity;
 import android.util.Log;
 
 /**
- * @author Tuvok_Li
  * User interface to set preference of Media player
  * 
  */
