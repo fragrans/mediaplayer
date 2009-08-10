@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/repos/!svn/ver/2928/android/android_1.5_source_20090428/trunk/packages/apps/mediaplayer
+END
+default.properties
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/repos/!svn/ver/2313/android/android_1.5_source_20090428/trunk/packages/apps/mediaplayer/default.properties
+END
+.classpath
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/repos/!svn/ver/2313/android/android_1.5_source_20090428/trunk/packages/apps/mediaplayer/.classpath
+END
+.project
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/repos/!svn/ver/1743/android/android_1.5_source_20090428/trunk/packages/apps/mediaplayer/.project
+END
+Android.mk
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/repos/!svn/ver/1912/android/android_1.5_source_20090428/trunk/packages/apps/mediaplayer/Android.mk
+END
+AndroidManifest.xml
+K 25
+svn:wc:ra_dav:version-url
+V 108
+/repos/!svn/ver/2313/android/android_1.5_source_20090428/trunk/packages/apps/mediaplayer/AndroidManifest.xml
+END
