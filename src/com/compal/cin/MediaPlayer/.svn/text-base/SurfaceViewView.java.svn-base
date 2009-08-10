@@ -1,0 +1,261 @@
+/**
+ * 09-2-04 by Hang Lu:
+ * + function: Video play back controlled by space bar
+ * = Change message level to verbose
+ * 09-3-05 by Tuvok Li:
+ * = Fix a bug on Netbook : remove prepare() functions
+ * = Add some debug messages
+ */
+package com.compal.cin.MediaPlayer;
+
+import java.io.IOException;
+
+
+
+import android.app.Activity;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.media.MediaPlayer;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.*;
+import android.view.SurfaceHolder.Callback;
+import android.widget.AbsoluteLayout;
+import android.widget.Toast;
+import android.util.DisplayMetrics;
+
+public class SurfaceViewView extends Activity{
+
+	private static final String TAG = Debug.TAG;
+
+	private int pressnum;
+	private MediaPlayer mMediaPlayer = null;
+	private SurfaceView mPreview = null;
+	private AbsoluteLayout mLayout = null;
+	private String path = null;
+
+	/**
+	 * 
+	 * Called when the activity is first created.
+	 */
+	public void onCreate(Bundle icicle) {
+		super.onCreate(icicle);
+		Log.v(TAG, "SurfaceView onCreate()");
+		
+		// No Statusbar 
+		final Window win = getWindow();
+        win.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);     
+
+        // No Titlebar 
+        requestWindowFeature(Window.FEATURE_NO_TITLE); 
+        requestWindowFeature(Window.FEATURE_PROGRESS);
+        
+		setContentView(R.layout.surfaceview_view);
+
+		mPreview = new SurfaceView(this); 
+		mLayout = (AbsoluteLayout) findViewById(R.id.myLayout);
+
+		SurfaceHolder holder = null;
+
+		holder = mPreview.getHolder();
+		holder.addCallback(mCallback);
+		
+		SharedPreferences prefs = this.getSharedPreferences(
+				"com.compal.cin.MediaPlayer_preferences", 0);
+		String surface_type = prefs.getString("surface_type_preference", "3");
+		Log.v(TAG, "Pref: " + surface_type.toString());
+		holder.setType(new Integer(surface_type));
+
+		path = getIntent().getData().getPath();
+		Log.v(TAG, "SurfaceView: I will play: " + path);
+
+		mMediaPlayer = new MediaPlayer();
+		mMediaPlayer.setOnBufferingUpdateListener(mBufferingUpdateListener);
+		mMediaPlayer.setOnCompletionListener(this.mCompletionListener);
+		mMediaPlayer.setOnPreparedListener(this.mPreparedListener);
+
+		try {
+			mMediaPlayer.setDataSource(path);
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalStateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		mMediaPlayer.setDisplay(holder);
+
+		mLayout.setBackgroundColor(Color.BLACK);
+
+		mLayout.addView(mPreview);
+	}
+
+
+	/**
+	 * (non-Javadoc)
+	 * 
+	 * @see android.app.Activity#onPause()
+	 */
+	@Override
+	protected void onPause() {
+		super.onPause();
+		Log.v(TAG, "onPause() called, mediaplayer will be released.");
+		if (mMediaPlayer != null) {
+			Log.v(TAG, "Releasing mediaplayer.");
+			mMediaPlayer.release();
+			Log.v(TAG, "Mediaplayer released.");
+			mMediaPlayer = null;
+		}
+	}
+
+	/**
+	 * 
+	 * @see android.app.Activity#onDestroy()
+	 */
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		Log.v(TAG, "onDestroy() called");
+		// TODO Auto-generated method stub
+		if (mMediaPlayer != null) {
+			Log.v(TAG, "Releasing mediaplayer.");
+			mMediaPlayer.release();
+			Log.v(TAG, "Mediaplayer released.");
+			mMediaPlayer = null;
+		}
+	}
+
+	/**
+	 * called when keyboard was been pressed.
+	 * 
+	 * @param: key is the key value.
+	 * @param: event is the event from keyboard.
+	 */
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+
+		Log.v(TAG, "onKeyDown() called");
+		switch (keyCode) {
+		case KeyEvent.KEYCODE_SPACE:
+			pressnum++;
+			if ((pressnum % 2) == 1) {
+				Log.v(TAG, "Player Paused");
+				mMediaPlayer.pause();
+			} else {
+				Log.v(TAG, "Player Started");
+				mMediaPlayer.start();
+			}
+			break;
+		default:
+			break;
+		}
+
+		return super.onKeyDown(keyCode, event);
+	}
+
+	private MediaPlayer.OnBufferingUpdateListener mBufferingUpdateListener = new MediaPlayer.OnBufferingUpdateListener() {
+		public void onBufferingUpdate(MediaPlayer mp, int percent) {
+			Log.v(TAG, "onBufferingUpdate(" + mp.toString() + ") called : " + percent);
+		}
+	};
+	
+	private MediaPlayer.OnPreparedListener mPreparedListener = new MediaPlayer.OnPreparedListener() {
+		public void onPrepared(MediaPlayer mp) {
+			Log.v(TAG, "onPrepared(" + mp.toString() + ") called");
+			DisplayMetrics dm;
+			dm = new DisplayMetrics();
+			final Window win = getWindow();
+			int winHeight = win.getWindowManager().getDefaultDisplay().getHeight();
+			final int winWidth = win.getWindowManager().getDefaultDisplay().getWidth();
+			getWindowManager().getDefaultDisplay().getMetrics(dm);
+			int screenWidth = dm.widthPixels;
+			int screenHeight = dm.heightPixels;
+			Integer videoHeight = 0, videoWidth = 0;
+			videoHeight = mMediaPlayer.getVideoHeight();
+			videoWidth = mMediaPlayer.getVideoWidth();
+			while (videoHeight == 0 || videoWidth == 0) {
+				Log.w(TAG, "video size not ready! It's a music?");
+				videoHeight = mMediaPlayer.getVideoHeight();
+				videoWidth = mMediaPlayer.getVideoWidth();
+                /*
+				Toast.makeText(
+                        SurfaceViewView.this,
+                        "Wrong Resolution, Loading...",
+                        Toast.LENGTH_SHORT).show();
+                */
+			}
+
+			Log.v(TAG, "video size: " + videoWidth + " x " + videoHeight);
+			Log.v(TAG, "window size: " + winWidth + " x " + winHeight);
+			Log.v(TAG, "screen size: " + screenWidth + " x " + screenHeight);
+			
+			/** get status */
+			final WindowManager.LayoutParams  params = win.getAttributes();
+			if ((params.flags & WindowManager.LayoutParams.FLAG_FULLSCREEN) == 0) {
+				Log.v(TAG, "Full Screen!");
+				winHeight -= 25;
+			}
+			winHeight -= 25;
+			AbsoluteLayout.LayoutParams svLP = new AbsoluteLayout.LayoutParams(
+					videoWidth, videoHeight, (winWidth - videoWidth) / 2,
+					(winHeight - videoHeight) / 2);
+			mPreview.setLayoutParams(svLP);
+			
+			/**
+			 * Here we go!
+			 */
+			mMediaPlayer.start();
+			Log.v(TAG, "video started");
+		}
+	};
+	
+	private MediaPlayer.OnCompletionListener mCompletionListener = new MediaPlayer.OnCompletionListener() {
+		public void onCompletion(MediaPlayer mp) {
+			Log.v(TAG, "onCompletion(" + mp.toString() +") called");
+			finish();
+		}
+	};
+	
+	private Callback mCallback = new Callback() {
+
+
+		@Override
+		public void surfaceChanged(SurfaceHolder arg0, int arg1, int arg2,
+				int arg3) {
+			// TODO Auto-generated method stub
+			Log.v(TAG, "surfaceChanged( " + arg0.toString() + " ) called");
+			Log.v(TAG, "holder type: " + new Integer(arg1).toString());
+			Log.v(TAG, "holder width: " + new Integer(arg2).toString());
+			Log.v(TAG, "holder height: " + new Integer(arg3).toString());
+
+		}
+
+		@Override
+		public void surfaceCreated(SurfaceHolder arg0) {
+			// TODO Auto-generated method stub
+			Log.v(TAG, "surfaceCreated( " + arg0.toString() + " ) called");
+			Log.v(TAG, "I am preparing: " + path);
+			try {
+				mMediaPlayer.prepare();
+				// This method will block until the file is
+				// ready for playback.
+				// So, use this for file. While prepareAsyn() will return
+				// immediately,
+				// It is suitable for stream playback.
+				
+			} catch (Exception e) {
+				Log.e(TAG, "error: " + e.getMessage(), e);
+			}
+		}
+
+		@Override
+		public void surfaceDestroyed(SurfaceHolder arg0) {
+			// TODO Auto-generated method stub
+			Log.v(TAG, "surfaceDestroyed( " + arg0.toString() + " ) called");
+		}
+	};
+
+}

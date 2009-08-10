@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Copyright (C) 2007 The Android Open Source Project Licensed under the
+Apache License, Version 2.0 (the "License"); you may not use this file
+except in compliance with the License. You may obtain a copy of the
+License at http://www.apache.org/licenses/LICENSE-2.0 Unless required
+by applicable law or agreed to in writing, software distributed under
+the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, either express or implied. See the License for
+the specific language governing permissions and limitations under the
+License.
+-->
+
+<resources>
+    <!-- Used in Settings.java -->
+    <string-array name="entries_list_preference">
+        <item>SurfaceView</item>
+        <item>ControllerView</item>
+        <item>Console</item>
+    </string-array>
+
+    <string-array name="entryvalues_list_preference">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
+    <string-array name="entries_surface_type_preference">
+        <item>SURFACE_TYPE_HARDWARE</item>
+        <item>SURFACE_TYPE_NORMAL</item>
+        <item>SURFACE_TYPE_GPU</item>
+        <item>SURFACE_TYPE_PUSH_BUFFERS</item>
+    </string-array>
+
+    <string-array name="entryvalues_surface_type_preference">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+
+    <string-array name="entries_audio_format_type_preference">
+        <item>mp3</item>
+        <item>ogg</item>
+        <item>3gp</item>
+        <item>wav</item>
+    </string-array>
+
+    <string-array name="entryvalues_audio_format_type_preference">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+    <string-array name="file_option_media_dialog_items">
+        <item>View as Picture</item>
+        <item>View as Audio</item>
+    </string-array>
+    <string-array name="file_option_select_dialog_items">
+        <item>Media Type</item>
+        <item>Delete</item>
+        <item>Cancel</item>
+    </string-array>
+</resources>

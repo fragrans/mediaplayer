@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Media Player</string>
+    
+    <string name="layout01">layout01</string>
+	<string name="dialog_based_preferences">Media Player Preferences</string>
+	
+	<string name="title_list_preference">Video Output Type</string>
+	<string name="dialog_title_list_preference">Video Output Type</string>
+    <string name="summary_list_preference">Select Video Output Type</string>
+    
+    <string name="title_surface_type_preference">Surface Type</string>
+	<string name="dialog_title_surface_type_preference">Surface Type</string>
+    <string name="summary_surface_type_preference">Select Surface Type</string>
+   
+    <string name="title_audio_format_type_preference">Audio Output Type</string>
+	<string name="dialog_title_audio_format_type_preference">Audio Output Type</string>
+    <string name="summary_audio_format_type_preference">Select Audio Output Type</string>
+    
+	<string name="start">Start</string>
+        <string name="stop">Stop</string>
+        <string name="press_esc_to_quit">Press ESC to Quit</string>
+<string name="file_option_select_dialog">File Operation</string>
+<string name="file_option_media_dialog">Media Format</string>
+</resources>

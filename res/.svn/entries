@@ -1,0 +1,40 @@
+9
+
+dir
+2928
+http://10.131.36.231/repos/android/android_1.5_source_20090428/trunk/packages/apps/mediaplayer/res
+http://10.131.36.231/repos
+
+
+
+2009-07-11T05:25:16.480174Z
+2350
+Tuvok_Li@compal.com
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+0755866d-6924-43d0-ba56-d612fea0dcdb
+
+values
+dir
+
+xml
+dir
+
+drawable
+dir
+
+layout
+dir
+

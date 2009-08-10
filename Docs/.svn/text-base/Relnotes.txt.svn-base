@@ -1,0 +1,109 @@
+Release notes by 20090311
+Release Date: 2009/2/26
+
+Project:     KTV01
+Version:     KTV0100.0.0002
+Type:        Initial Release
+
+Added/Fixed/Modification:
+<Note>
+    01. 
+<Add>
+    01. [MediaPlayer] add jpeg view support
+    01. [MediaPlayer] add mp3, wav play support
+    01. [MediaPlayer] add register video/mp4 support
+<Modification>   
+
+<Fix>
+
+
+<Known issue>
+
+
+
+Release notes by 20090310
+Release Date: 2009/2/26
+
+Project:     KTV01
+Version:     KTV0100.0.0002
+Type:        Initial Release
+
+Added/Fixed/Modification:
+<Note>
+    01. 
+<Add>
+    01. [Camera] chmod in init script
+<Modification>   
+    01. [Camera] Camera can preview in color 
+    02. [Camera] SelectCam removed.
+<Fix>
+    01. [Camera] Fix Camera privew crash issue
+
+<Known issue>
+    01. [Camera] Camera cannot capture now, because built-in camera doesnot support MJPEG format.
+
+Release notes by 20090305
+Release Date: 2009/2/26
+
+Project:     KTV01
+Version:     KTV0100.0.0002
+Type:        Initial Release
+
+Added/Fixed/Modification:
+<Note>
+    01. 
+<Add>
+    01. [MediaPlayer] preferences can be saved.
+    02. [Camera] Select for camera preview
+<Modification>   
+    01. [MediaPlayer] Remove layouts (Settings & mediaplayer_2)
+    02. [Camera] Camera can preview in color
+<Fix>
+    01. [MediaPlayer] Fix bug on netbook (disable MediaPlayer.prepare())
+    02. [MediaPlayer] Fix Background problem in SurfaceView mode
+<Known issue>
+    01. [Camera] Camera preivew at fixed resolution of 320x240
+    02. [Camera] Kernel MAY CRASH while previewing!
+    02. [Camera] Need to make video device readable before preivew!
+    
+Release notes by 20090305
+    - Remove layouts (Settings & mediaplayer_2)
+    = Fix bug on netbook (disable MediaPlayer.prepare())
+    + Add some debug messages
+    + Preferences can be saved.
+	= Fix Background problem in SurfaceView mode
+
+Release notes by 20090224
+    + File browsing updated(Slash indicator, Absolute path TextEdit)
+    + Video Control (Spacebar - Pause / Play on both video output view)
+    = Fix some bugs (Path TextEdit refresh)
+    + Add Play.java, Pref.java, Settings.java to extend flexibility.
+    
+    ? Settings can not be saved.
+    ? 
+
+Release notes for v0.1:
+    - File browsing
+    + Settings
+      - Output Type
+    - Video output select (Surfaceview & MediaController)
+    
+    
+Tuvok_Li@compal.com
+Android for x86 netbook Release Note
+================================================================================
+Release Date: 2009/2/20
+Project:     KTV01
+Version:     KTV0100.0.0001
+Type:        Initial Release
+
+Added/Fixed/Modification:
+<Note>
+
+<Add>
+    01. [WiFi] power off function
+<Modification>   
+    
+<Fix>
+    
+<Known issue>

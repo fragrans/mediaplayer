@@ -1,0 +1,95 @@
+
+package com.compal.cin.MediaPlayer;
+
+import android.os.*;
+import android.app.Activity;
+
+import android.content.Intent;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.FileWriter;
+import java.io.FileFilter;
+import java.io.IOException;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.KeyEvent;
+import android.media.AudioSystem;
+
+import android.widget.MediaController;
+
+import android.widget.VideoView;
+
+
+public class Console extends Activity
+{
+
+    private static final String TAG = Debug.TAG;
+
+    /**
+     * Called when the activity is first created.
+     */
+    public void onCreate(Bundle icicle) {
+        super.onCreate(icicle);
+        setContentView(R.layout.console);
+        Log.d(TAG, "start chvt change.");
+        File fd = new File("/sdcard/playlist");
+        AudioSystem AS = new AudioSystem();
+        AS.setALSAGiveup();
+        try {
+            fd.createNewFile();
+            FileWriter writer = new FileWriter(fd);
+            String path = getIntent().getData().getPath();
+        	Log.v(TAG, "Console: I will play: " + path);
+            writer.write(path);
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        
+        SystemProperties.set("ctl.start", "chvt_1");
+    }
+
+    /**
+     * (non-Javadoc)
+     *
+     * @see android.app.Activity#onPause()
+     */
+    @Override
+        protected void onPause() {
+            super.onPause();
+            Log.v(TAG, "Console onPause() called, mediaplayer will be released.");
+            Log.v(TAG, "start killmplayer");
+            SystemProperties.set("ctl.start", "killmplayer");
+            Log.v(TAG, "kill mplayer successfully");
+            SystemProperties.set("ctl.start", "killmediaserver");
+            Log.v(TAG, "killall mediaserver successfully");                
+        }
+
+    /**
+     *
+     * @see android.app.Activity#onDestroy()
+     */
+    @Override
+        protected void onDestroy() {
+            super.onDestroy();
+            Log.v(TAG, "onDestroy() called");
+            // TODO Auto-generated method stub
+
+        }
+
+    /**
+     * called when keyboard was been pressed.
+     *
+     * @param: key is the key value.
+     * @param: event is the event from keyboard.
+     */
+    @Override
+        public boolean onKeyDown(int keyCode, KeyEvent event) {
+
+            Log.v(TAG, "onKeyDown() called");
+
+
+            return super.onKeyDown(keyCode, event);
+        }
+
+}

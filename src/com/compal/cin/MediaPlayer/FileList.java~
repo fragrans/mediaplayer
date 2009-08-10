@@ -1,0 +1,711 @@
+/**
+ * File list view Edit  	09-2-23 by Wood Pan
+ * Edit text input function 09-2-23 by Wood Pan
+ * Folder "/" add 			09-2-23 by Wood Pan
+ * 09-2-04 by Tuvok:
+ * Fix TextEdit cursor problem	
+ * Fix "../" 				
+ * Remove unused variables 
+ * Fix some structure problems.
+ * 09-3-5 by Tuvok:
+ * Fix Background problem
+ * 09-3-11 by wood
+ * Add file filter function
+ * 09-4-2 by Tuvok:
+ * Mediascan updates
+ * 09-5-20 by Tony:
+ * Add Console Video Mode
+ */
+package com.compal.cin.MediaPlayer;
+
+import android.os.*;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.ProgressDialog;
+import android.content.ContentResolver;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.database.Cursor;
+
+import android.net.Uri;
+import android.os.Bundle;
+import android.provider.MediaStore;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.Toast;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.ListView;
+import android.widget.AdapterView.OnItemClickListener;
+
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.FileWriter;
+import java.io.FileFilter;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
+import android.view.*;
+import android.media.MediaScannerConnection;
+import android.media.MediaScannerConnection.MediaScannerConnectionClient;
+
+public class FileList extends Activity implements TextWatcher, FileFilter {
+    private static final int DIALOG_FILE_OPTION = 1;
+    private static final int DIALOG_MEDIA_OPTION = 2;
+    private static final String TAG = Debug.TAG;
+    private static final int ACTIVITY_RECORD_SOUND = 1;
+
+    private String m_currentWorkingPath = android.os.Environment
+        .getExternalStorageDirectory().getPath()
+        + File.separator;
+    private String[] m_filenameList = {}; // File names list string
+    private ListView mListView = null;
+    private int mSelectedItem = -1;
+
+    @Override
+        protected Dialog onCreateDialog(int id) {
+            switch (id) {
+                case DIALOG_MEDIA_OPTION:
+                    return new AlertDialog.Builder(FileList.this).setTitle(
+                            R.string.file_option_media_dialog).setItems(
+                                R.array.file_option_media_dialog_items,
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        Log.v(TAG, "Selected: " + mSelectedItem);
+                                        if (mSelectedItem < 0) {
+                                            Log.v(TAG, "Weird item, non selected!" + mSelectedItem);
+                                            return;
+                                        }
+                                        /* User clicked so do some stuff */
+                                        String[] items = getResources().getStringArray(
+                                            R.array.file_option_select_dialog_items);
+
+                                        File file = new File(m_currentWorkingPath
+                                            + m_filenameList[mSelectedItem]);
+                                        Log.v(TAG, "File to op with media: " + file.toString());
+
+                                        Intent intent = new Intent();
+                                        Uri data = Uri.parse("file://" + file.getAbsolutePath());
+                                        switch (which) {
+                                            case 0: // photo
+                                                Log.v(TAG, "Photo?");
+                                                intent.setAction(android.content.Intent.ACTION_VIEW);
+                                                intent.setDataAndType(data, "image/*");
+                                                break;
+                                            case 1:
+                                                Log.v(TAG, "Audio?");
+                                                intent.setAction(android.content.Intent.ACTION_VIEW);
+                                                intent.setDataAndType(data, "audio/*");
+                                                break;
+                                            case 2:
+                                                Log.v(TAG, "Video?");
+                                                intent.setData(data);
+                                                intent.setClassName("com.compal.cin.MediaPlayer",
+                                                    "com.compal.cin.MediaPlayer.SurfaceViewView");
+                                                break;
+                                            default:
+                                                Log.e(TAG, "This is a weird error");
+                                                intent.setData(data);
+                                        }
+
+                                        Log.v(TAG, "Starting new activity!");
+                                        startActivity(intent);
+
+                                    }
+                                }).create();
+
+                case DIALOG_FILE_OPTION:
+                    return new AlertDialog.Builder(FileList.this).setTitle(
+                            R.string.file_option_select_dialog).setItems(
+                                R.array.file_option_select_dialog_items,
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        Log.v(TAG, "Selected: " + mSelectedItem);
+                                        if (mSelectedItem < 0) {
+                                            return;
+                                        }
+                                        /* User clicked so do some stuff */
+                                        String[] items = getResources().getStringArray(
+                                            R.array.file_option_select_dialog_items);
+
+                                        File file = new File(m_currentWorkingPath
+                                            + m_filenameList[mSelectedItem]);
+                                        Log.v(TAG, "File to op: " + file.toString());
+
+                                        switch (which) {
+                                            case 0:
+                                                showDialog(DIALOG_MEDIA_OPTION);
+                                                break;
+                                            case 1:
+                                                if (file.delete()) {
+                                                    Toast.makeText(
+                                                            FileList.this,
+                                                            "File: " + file.toString()
+                                                            + " Deleted.", 500).show();
+                                                } else {
+                                                    Log.e(TAG, "File: " + file.toString()
+                                                            + " delete failed.");
+                                                }
+                                                updateList();
+                                                break;
+                                            case 2:
+                                                Log.v(TAG, "File: " + file.toString()
+                                                        + " deletion cancelled.");
+                                                break;
+                                            default:
+                                                Log
+                                                    .e(
+                                                            TAG,
+                                                            "File: "
+                                                            + file.toString()
+                                                            + " deletion run into tricky situation.");
+                                                break;
+                                        }
+
+                                    }
+                                }).create();
+            }
+            return null;
+        }
+
+    /**
+     * called when keyboard was been pressed.
+     * 
+     * @param: key is the key value.
+     * @param: event is the event from keyboard.
+     */
+    @Override
+        public boolean onKeyDown(int keyCode, KeyEvent event) {
+
+            Log.v(TAG, "onKeyDown(" + keyCode + ", " + event + ") called");
+            return super.onKeyDown(keyCode, event);
+        }
+
+    android.view.View.OnFocusChangeListener focusChangeListener = new android.view.View.OnFocusChangeListener() {
+
+        @Override
+            public void onFocusChange(View arg0, boolean arg1) {
+                // TODO Auto-generated method stub
+                Log.v(TAG, "onFocusChange(" + arg0 + ", " + arg1 + ")");
+            }
+
+    };
+    android.widget.AdapterView.OnItemSelectedListener itemSelectedListenser = new android.widget.AdapterView.OnItemSelectedListener() {
+
+        @Override
+            public void onItemSelected(AdapterView<?> parent, View list,
+                    int position, long id) {
+                // TODO Auto-generated method stub
+                Log.v(TAG, "onItemSelected(" + parent + ", " + list + ", "
+                        + position + ", " + id + ")");
+                File file = new File(m_currentWorkingPath
+                        + m_filenameList[position]);
+                Log.v(TAG, "Selected: " + file.toString());
+                mSelectedItem = position;
+            }
+
+        @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // TODO Auto-generated method stub
+                Log.v(TAG, "onNothingSelected( " + parent + " )");
+                mSelectedItem = -1;
+            }
+
+    };
+    android.widget.AdapterView.OnItemLongClickListener itemLongClickListener = new android.widget.AdapterView.OnItemLongClickListener() {
+
+        @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View list,
+                    int position, long id) {
+                // TODO Auto-generated method stub
+                Log.v(TAG, "onItemLongClick(" + parent + ", " + list + ", "
+                        + position + ", " + id + ")");
+                mSelectedItem = position;
+                showDialog(DIALOG_FILE_OPTION);
+                return false;
+            }
+
+    };
+
+    public static Cursor query(Context context, Uri uri, String[] projection,
+            String selection, String[] selectionArgs, String sortOrder) {
+        try {
+            ContentResolver resolver = context.getContentResolver();
+            if (resolver == null) {
+                return null;
+            }
+            return resolver.query(uri, projection, selection, selectionArgs,
+                    sortOrder);
+        } catch (UnsupportedOperationException ex) {
+            return null;
+        }
+
+    }
+
+    public static int[] getAllSongs(Context context) {
+        Cursor c = query(context, MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
+                new String[] { MediaStore.Audio.Playlists._ID,
+                    MediaStore.Audio.Playlists.NAME }, "", null, null);
+        Log.v(TAG, "Cursor: " + c.toString());
+        try {
+            if (c == null || c.getCount() == 0) {
+                return null;
+            }
+            int len = c.getCount();
+            int[] list = new int[len];
+            for (int i = 0; i < len; i++) {
+                c.moveToNext();
+
+                Log.v(TAG, "Cursor: " + c.getString(0));
+                Log.v(TAG, "Cursor: " + c.getString(1));
+                Log.v(TAG, "Cursor: " + c.getColumnCount());
+                Log.v(TAG, "Cursor: "
+                        + c.getColumnIndex(MediaStore.Images.Media._ID));
+                Log.v(TAG, "Cursor: "
+                        + c.getColumnIndex(MediaStore.Images.Media.TITLE));
+                list[i] = c.getInt(0);
+            }
+            Log.v(TAG, "Found:" + len);
+            return list;
+        } finally {
+            if (c != null) {
+                c.close();
+            }
+        }
+    }
+
+    OnItemClickListener itemClickListener = new OnItemClickListener() {
+
+        @Override
+            public void onItemClick(AdapterView<?> parent, View list, int position,
+                    long id) {
+                // TODO Auto-generated method stub
+                Log.v(TAG, "onItemClick(" + parent + ", " + list + ", " + position
+                        + ", " + id + ")");
+
+                Log.v(TAG, "Clicked with Path: " + m_currentWorkingPath);
+
+                File file;
+                if (position == 0
+                        && new File(m_currentWorkingPath).compareTo(new File(
+                                File.separator)) != 0) {
+                    File pre = new File(m_currentWorkingPath);
+
+                    file = pre.getParentFile();
+                } else {
+                    file = new File(m_currentWorkingPath + m_filenameList[position]);
+                }
+
+                Log.v(TAG, "I found: " + file.getAbsolutePath());
+
+                if (file.isDirectory()) {
+                    Log.v(TAG, "Name Length: "
+                            + new Integer(file.getAbsolutePath().length())
+                            .toString());
+                    m_currentWorkingPath = file.getAbsolutePath();
+                    if (m_currentWorkingPath.length() != 1) {
+                        m_currentWorkingPath += File.separator;
+                    }
+
+                    updateList();
+                    updateEdit();
+                    return;
+                }
+
+                // File clicked, Call other activity
+                /**
+                 * video absolute path will pass to new view
+                 */
+                // Play player = new Play(this);
+                // player.play(file.getAbsolutePath());
+                SharedPreferences prefs = getSharedPreferences(
+                        "com.compal.cin.MediaPlayer_preferences", 0);
+
+                Map<String, ?> ms = prefs.getAll();
+                Integer mapSize = ms.size();
+                Iterator<?> iter = ms.entrySet().iterator();
+                Log.v(TAG, "Map Size: " + mapSize.toString());
+                for (Integer i = 0; i < mapSize; i++) {
+                    Map.Entry<String, ?> entry = (Map.Entry<String, ?>) iter.next();
+                    Log
+                        .v(TAG, entry.getKey() + " : "
+                                + entry.getValue().toString());
+                }
+
+                try {
+                    if (Pattern
+                            .compile(
+                                ".*\\.mid$|" +
+                                ".*\\.ogg$|" +
+                                ".*\\.aac$|" +
+                                ".*\\.mp3$|" +
+                                ".*\\.amr$|" +
+                                ".*\\.ra$|" +
+                                ".*\\.wma$|" +
+                                ".*\\.wav$", 
+                                Pattern.CASE_INSENSITIVE).matcher(
+                                    file.getAbsolutePath()).matches()) {
+                        Log.v(TAG, "Audio extension found!");
+                        Intent intent = new Intent(
+                                android.content.Intent.ACTION_VIEW);
+                        Uri data = Uri.parse("file://" + file.getAbsolutePath());
+                        String type = "audio/*";
+                        intent.setDataAndType(data, type);
+                        startActivity(intent);				
+                    } else if (Pattern
+                            .compile(
+                                ".*\\.jpg$|.*\\.jpeg$|" + 
+                                ".*\\.bmp$|" +
+                                ".*\\.png$|" +
+                                ".*\\.gif$|" +
+                                ".*\\.tif$|.*\\.tiff$|" +
+                                ".*\\.wmf$|" +
+                                ".*\\.emf$|" +
+                                ".*\\.svg$|" +
+                                ".*\\.raw$|" +
+                                ".*\\.ppm$|" +
+                                ".*\\.pgm$|" +
+                                ".*\\.pbm$|" +
+                                ".*\\.pnm$|" +
+                                ".*\\.ecw$|" +
+                                ".*\\.cgm$|" +
+                                ".*\\.odg$|" +
+                                ".*\\.eps$|" +
+                                ".*\\.pdf$|" +
+                                ".*\\.swf$|" +
+                                ".*\\.xps$", 
+                                Pattern.CASE_INSENSITIVE).matcher(
+                                    file.getAbsolutePath()).matches()) {
+                                        Log.v(TAG, "Photo extension found!");
+                                        Intent intent = new Intent(
+                                                android.content.Intent.ACTION_VIEW);
+                                        Uri data = Uri.parse("file://" + file.getAbsolutePath());
+                                        String type = "image/*";
+                                        intent.setDataAndType(data, type);
+                                        startActivity(intent);
+                                    } 
+                    else if (Pattern.compile(
+                                ".*\\.3gp$|.*\\.3gpp$|" +
+                                ".*\\.mp4$|" +
+                                ".*\\.wmv$|" +
+                                ".*\\.mov$|" +
+                                ".*\\.m4v$|" +
+                                ".*\\.rmvb$|" +
+                                ".*\\.rm$|" +
+                                ".*\\.mpg$|" +
+                                ".*\\.mpeg$|" +
+                                ".*\\.avi$|" +
+                                ".*\\.vob$|" +
+                                ".*\\.ts$",
+                                Pattern.CASE_INSENSITIVE).matcher(
+                                    file.getAbsolutePath()).matches())
+                    {
+                        Log.v(TAG, "Video extension found!");
+                        Intent i = new Intent();
+                        Uri data = Uri.parse("file://" + file.getAbsolutePath());
+                        i.setData(data);
+                        String vo = prefs.getString("video_output_preference", "2");
+                        if (vo.equals("0")) {
+                            Log.v(TAG, "SurfaceView selected!");
+                            i.setClassName("com.compal.cin.MediaPlayer",
+                                    "com.compal.cin.MediaPlayer.SurfaceViewView");
+                            Log.v(TAG, "We are going to start the new activity now!");
+                            startActivity(i);
+                        } else if(vo.equals("1")) {
+                            Log.v(TAG, "ControllerView selected!");
+                            i.setClass(parent.getContext(), ControllerView.class);
+                            Log.v(TAG, "We are going to start the new activity now!");
+                            startActivity(i);
+                        } else {
+                            Log.v(TAG, "Console selected!");
+                            i.setClassName("com.compal.cin.MediaPlayer",
+                                    "com.compal.cin.MediaPlayer.Console");
+                            Log.v(TAG, "##############console start activity!");
+                            startActivity(i);
+                            Log.v(TAG, "##############console activity start successfully!");
+                        }
+                    } else {
+                        Log.v(TAG, "No match found!");
+                        showDialog(DIALOG_MEDIA_OPTION);
+                    }
+
+                } catch (ClassCastException e) {
+                    e.printStackTrace();
+                    Log.e(TAG, e.getMessage());
+                }
+            }
+
+    };
+
+    /**
+     * Initialize UI and setup listener.
+     */
+    private void initUI() {
+
+        setContentView(R.layout.main);
+        mListView = (ListView) findViewById(R.id.ListView01);
+        mListView.setOnItemClickListener(itemClickListener);
+        mListView.setOnFocusChangeListener(focusChangeListener);
+        mListView.setOnItemSelectedListener(itemSelectedListenser);
+        mListView.setOnItemLongClickListener(itemLongClickListener);
+    }
+
+    /**
+     * update EditText View
+     */
+    private void updateEdit() {
+        // edit text setting.
+        EditText edit = (EditText) findViewById(R.id.EditText01);
+        edit.setText(m_currentWorkingPath);
+        edit.addTextChangedListener(this);
+    }
+
+    /**
+     * Update File List View File Name list view will be updated with
+     * m_currentWorkingPath;
+     */
+    private void updateList() {
+        File listOfFiles[] = new File(m_currentWorkingPath)
+            .listFiles((FileFilter) this);
+        Log.v(TAG, "Working Path: " + m_currentWorkingPath);
+        Log.v(TAG, "Path list number: "
+                + new Integer(listOfFiles.length).toString());
+
+        Integer i = 0;
+        /* root directory Level up is not needed. */
+        if (new File(m_currentWorkingPath).compareTo(new File(File.separator)) != 0) {
+            m_filenameList = new String[listOfFiles.length + 1];
+            m_filenameList[i++] = ".." + File.separator;
+            Log.v(TAG, "Level up added.");
+        } else {
+            m_filenameList = new String[listOfFiles.length];
+        }
+
+        for (Integer j = 0; j < listOfFiles.length; i++, j++) {
+            m_filenameList[i] = listOfFiles[j].getName();
+
+            if (new File(m_currentWorkingPath + m_filenameList[i])
+                    .isDirectory()) {
+                m_filenameList[i] += File.separator;
+                    }
+            Log.v(TAG, i.toString() + ": " + m_filenameList[i]);
+        }
+
+        // list view setting.
+        mListView.setAdapter(new ArrayAdapter<String>(this,
+                    android.R.layout.simple_list_item_1, m_filenameList));
+    }
+
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        initUI();
+        updateList();
+        updateEdit();
+        new MediaScannerNotifier(FileList.this, m_currentWorkingPath,
+                "audio/mp3");
+    }
+
+    /**
+     * options menu create
+     */
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        menu.add(0, 0, 0, "Preferences");
+        menu.add(0, 1, 1, "Audio Record");
+        menu.add(0, 2, 2, "Delete");
+        return true;
+    }
+
+    @Override
+        protected void onPause() {
+            super.onPause();
+            Log.v(TAG, "onPause()");
+            findViewById(R.id.EditText01).setVisibility(View.INVISIBLE);
+            findViewById(R.id.ListView01).setVisibility(View.INVISIBLE);
+        }
+
+    @Override
+        protected void onResume() {
+            super.onResume();
+            Log.v(TAG, "onResume()");
+            findViewById(R.id.EditText01).setVisibility(View.VISIBLE);
+            findViewById(R.id.ListView01).setVisibility(View.VISIBLE);
+        }
+
+    @Override
+        protected void onStop() {
+            super.onStop();
+            Log.v(TAG, "onStop()");
+        }
+
+    @Override
+        protected void onDestroy() {
+            super.onDestroy();
+            Log.v(TAG, "onDestroy()");
+
+        }
+
+    @Override
+        protected void onRestart() {
+            super.onRestart();
+            Log.v(TAG, "onRestart()");
+
+        }
+
+    @Override
+        protected void onStart() {
+            super.onStart();
+            Log.v(TAG, "onStart()");
+        }
+
+    @Override
+        protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+            super.onActivityResult(requestCode, resultCode, data);
+            Log.i(TAG, "OnActivityResult(" + requestCode + ", " + resultCode + ", "
+                    + data + ")");
+
+            switch (requestCode) {
+
+                case ACTIVITY_RECORD_SOUND:
+                    Log.i(TAG, "Record sound found.");
+                    Log.i(TAG, data.getDataString());
+                    Log.i(TAG, data.getData().toString());
+                    break;
+            }
+        }
+
+    /**
+     * options menu
+     */
+    public boolean onOptionsItemSelected(MenuItem item) {
+        super.onOptionsItemSelected(item);
+        Log.v(TAG, "Menu: " + item.getItemId() + ": " + item.toString());
+
+        switch (item.getItemId()) {
+            case 0:
+                startActivity(new Intent().setClass(this, Preferences.class));
+                break;
+            case 1:
+                Intent i = new Intent();
+                i.setAction(MediaStore.Audio.Media.RECORD_SOUND_ACTION);
+                startActivityForResult(i, ACTIVITY_RECORD_SOUND);
+                break;
+            case 2:
+                showDialog(DIALOG_FILE_OPTION);
+                break;
+            default:
+                break;
+        }
+        return true;
+    }
+
+    /**
+     * Text change call
+     */
+    public void afterTextChanged(Editable arg0) {
+        Log.v(TAG, "afterTextChanged: " + arg0.toString());
+
+        if (new File(arg0.toString()).exists()
+                && new File(arg0.toString()).canRead()) {
+            m_currentWorkingPath = arg0.toString();
+            Log.v(TAG, "Hi, We found one :" + arg0.toString());
+            if (m_currentWorkingPath.length() != 1) // Not root
+            {
+                m_currentWorkingPath += File.separator;
+            }
+            updateList();
+        } else {
+            Log.v(TAG, "the same string no need updateList");
+        }
+
+    }
+
+    /**
+     * event handler for befor_text_changed
+     */
+    public void beforeTextChanged(CharSequence arg0, int arg1, int arg2,
+            int arg3) {
+        Log.v(TAG, "before text changed");
+    }
+
+    /**
+     * event handler for on_text_changed
+     */
+    public void onTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {
+        Log.v(TAG, "on text changed");
+    }
+
+    @Override
+        public boolean accept(File arg0) {
+            // TODO Auto-generated method stub
+            Log.v(TAG, arg0.getName());
+            if (arg0.isDirectory()) {
+                Log.v(TAG, "Directory()");
+                return true;
+            } else {
+                Log.v(TAG, "File()");
+                /*
+                 * Pattern p =Pattern.compile(
+                 * ".*\\.mp3$|.*\\.mp4$|.*\\.3gp$|.*\\.wav$|.*\\.jpg$|.*\\.bmp$|.*\\.png$"
+                 * , Pattern.CASE_INSENSITIVE);
+                 */
+                Pattern p = Pattern.compile(".*");
+                Matcher m = p.matcher(arg0.getName());
+                return m.matches();
+            }
+        }
+
+    private class MediaScannerNotifier implements MediaScannerConnectionClient {
+        private Context mContext;
+        private MediaScannerConnection mConnection;
+        private String mPath;
+        private String mMimeType;
+
+        public MediaScannerNotifier(Context context, String path,
+                String mimeType) {
+            Log.v(TAG, "MediaScannerNotifier()");
+            mContext = context;
+            mPath = path;
+            mMimeType = mimeType;
+            mConnection = new MediaScannerConnection(context, this);
+            mConnection.connect();
+        }
+
+        public void onMediaScannerConnected() {
+            Log.v(TAG, "onScannerConnected()");
+            mConnection.scanFile(mPath, mMimeType);
+        }
+
+        public void onScanCompleted(String path, Uri uri) {
+            // OPTIONAL: scan is complete, this will cause the viewer to render
+            // it
+            Log.v(TAG, "onScannCompleted()");
+            try {
+                if (uri != null) {
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setData(uri);
+                    mContext.startActivity(intent);
+
+                    updateList();
+                    updateEdit();
+                }
+            } finally {
+                mConnection.disconnect();
+                mContext = null;
+            }
+        }
+
+    }
+
+}

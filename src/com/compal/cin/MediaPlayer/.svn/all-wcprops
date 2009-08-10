@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 119
+/repos/!svn/ver/2928/android/android_1.5_source_20090428/trunk/packages/apps/mediaplayer/src/com/compal/cin/MediaPlayer
+END
+AudioRecord.java
+K 25
+svn:wc:ra_dav:version-url
+V 136
+/repos/!svn/ver/1743/android/android_1.5_source_20090428/trunk/packages/apps/mediaplayer/src/com/compal/cin/MediaPlayer/AudioRecord.java
+END
+Preferences.java
+K 25
+svn:wc:ra_dav:version-url
+V 136
+/repos/!svn/ver/1743/android/android_1.5_source_20090428/trunk/packages/apps/mediaplayer/src/com/compal/cin/MediaPlayer/Preferences.java
+END
+Play.java
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/repos/!svn/ver/1743/android/android_1.5_source_20090428/trunk/packages/apps/mediaplayer/src/com/compal/cin/MediaPlayer/Play.java
+END
+Debug.java
+K 25
+svn:wc:ra_dav:version-url
+V 130
+/repos/!svn/ver/1743/android/android_1.5_source_20090428/trunk/packages/apps/mediaplayer/src/com/compal/cin/MediaPlayer/Debug.java
+END
+FileList.java
+K 25
+svn:wc:ra_dav:version-url
+V 133
+/repos/!svn/ver/2928/android/android_1.5_source_20090428/trunk/packages/apps/mediaplayer/src/com/compal/cin/MediaPlayer/FileList.java
+END
+ControllerView.java
+K 25
+svn:wc:ra_dav:version-url
+V 139
+/repos/!svn/ver/2302/android/android_1.5_source_20090428/trunk/packages/apps/mediaplayer/src/com/compal/cin/MediaPlayer/ControllerView.java
+END
+SurfaceViewView.java
+K 25
+svn:wc:ra_dav:version-url
+V 140
+/repos/!svn/ver/2302/android/android_1.5_source_20090428/trunk/packages/apps/mediaplayer/src/com/compal/cin/MediaPlayer/SurfaceViewView.java
+END
